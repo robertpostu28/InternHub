@@ -1,0 +1,28 @@
+services:
+  # PostgreSQL service used by the Spring Boot application for local development
+  db:
+    image: postgres:16
+    container_name: internhub-db
+
+    # Initial database, user and password. For future security, replace the hardcoded values with environment variables or secrets management
+    # values with environment variables or a .env file before committing
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-internhub}
+      POSTGRES_USER: ${POSTGRES_USER:-internhub}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-internhub}
+
+    # Port mapping exposes the DB on the host machine
+    # Exposing 5432 on the host is convenient for dev but may conflict with other local services and it s not recommended for production
+    ports:
+      - "5432:5432"
+
+    # Persistent storage for PostgreSQL data. This ensures that data is not lost when the container is stopped or removed
+    # Uses a named Docker volume 'internhub_pgdata' which is defined at the bottom of this file
+    volumes:
+      - internhub_pgdata:/var/lib/postgresql/data
+
+# Named volumes provide durable storage outside the container filesystem
+volumes:
+
+  # Stores PostgreSQL data files for persistence across container lifecycle
+  internhub_pgdata:
