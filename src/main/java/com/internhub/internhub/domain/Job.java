@@ -47,6 +47,6 @@ public class Job {
     @Column(name = "status", nullable = false, length = 50)
     private JobStatus status; // OPEN or CLOSED
 
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", nullable = false, insertable = false, updatable = false) // set insertable and updatable to false to let the database handle the timestamp
     private LocalDateTime createdAt; // timestamp for when the job was created
 }
