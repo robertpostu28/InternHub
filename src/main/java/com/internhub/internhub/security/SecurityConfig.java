@@ -18,6 +18,9 @@ import org.springframework.security.web.SecurityFilterChain;
 // Import the HttpSecurity class for configuring web-based security for specific HTTP requests
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 
+// Import the HttpMethod enum for specifying HTTP methods in request matchers
+import org.springframework.http.HttpMethod;
+
 /*
     This configuration defines how Spring Security protects our API.
 
@@ -46,6 +49,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.GET, "/jobs/**").permitAll()
                         .requestMatchers("/auth/**").permitAll() // ** means that all endpoints under /auth/ are accessible without authentication
                         .anyRequest().authenticated()
                 )

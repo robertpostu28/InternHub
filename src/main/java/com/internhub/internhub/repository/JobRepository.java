@@ -27,4 +27,7 @@ public interface JobRepository extends  JpaRepository<Job,Long> {
         performance and user experience.
     */
     Page<Job> findByStatus(JobStatus status, Pageable pageable);
+    Page<Job> findByRecruiterEmail(String email, Pageable pageable);
+    // Spring auto-generates the query based on the method name convention. It will look for jobs where the recruiter's email
+    // matches the provided email parameter, and it will return the results in a paginated format based on the Pageable parameter.
 }
