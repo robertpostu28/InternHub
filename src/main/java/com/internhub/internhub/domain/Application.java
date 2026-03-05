@@ -38,6 +38,6 @@ public class Application {
     @Column(name = "status", nullable = false, length = 50)
     private ApplicationStatus status;
 
-    @Column(name = "applied_at", nullable = false)
-    private LocalDateTime createdAt; // timestamp for when the application was created
+    @Column(name = "applied_at", nullable = false, insertable = false, updatable = false) // set insertable and updatable to false to let the database handle the timestamp
+    private LocalDateTime appliedAt; // timestamp for when the application was created
 }
