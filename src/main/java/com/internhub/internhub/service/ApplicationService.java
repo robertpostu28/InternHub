@@ -36,9 +36,9 @@ public class ApplicationService {
                 .orElseThrow(() -> new RuntimeException("Candidate not found: " + candidateEmail));
 
         // Rule: candidate must have cv uploaded to apply
-//        if (candidate.getCvFile() == null) {
-//            throw new RuntimeException("Candidate must upload a CV before applying");
-//        }
+        if (candidate.getCvFile() == null) {
+            throw new RuntimeException("Candidate must upload a CV before applying");
+        }
 
         Job job = jobRepository.findById(jobId)
                 .orElseThrow(() -> new RuntimeException("Job not found: " + jobId));

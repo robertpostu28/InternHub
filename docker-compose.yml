@@ -21,8 +21,21 @@ services:
     volumes:
       - internhub_pgdata:/var/lib/postgresql/data
 
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    container_name: internhub-azurite
+    restart: unless-stopped
+    ports:
+      - "10000:10000"  # Blob service
+    command: "azurite-blob --blobHost 0.0.0.0 --blobPort 10000"
+    volumes:
+      - azurite_data:/data
+
 # Named volumes provide durable storage outside the container filesystem
 volumes:
 
   # Stores PostgreSQL data files for persistence across container lifecycle
   internhub_pgdata:
+
+    # Stores Azurite data files for persistence across container lifecycle
+  azurite_data:

@@ -40,4 +40,11 @@ public class Application {
 
     @Column(name = "applied_at", nullable = false, insertable = false, updatable = false) // set insertable and updatable to false to let the database handle the timestamp
     private LocalDateTime appliedAt; // timestamp for when the application was created
+
+    @PrePersist
+    public void prePersist() {
+        if (appliedAt == null) {
+            appliedAt = LocalDateTime.now();
+        }
+    }
 }
