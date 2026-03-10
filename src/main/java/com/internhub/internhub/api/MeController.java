@@ -1,6 +1,7 @@
 package com.internhub.internhub.api;
 
 import com.internhub.internhub.api.dto.UserResponse;
+import com.internhub.internhub.common.exception.NotFoundException;
 import com.internhub.internhub.domain.User;
 import com.internhub.internhub.repository.UserRepository;
 import org.springframework.security.core.Authentication;
@@ -19,7 +20,7 @@ public class MeController {
     public UserResponse me(Authentication auth) {
         String email = auth.getName(); // username is Spring Security = email in our case
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Authenticated user not found in database: " + email));
+                .orElseThrow(() -> new NotFoundException("USER_NOT_FOUND", "User not found with email: " + email));
 
         return new UserResponse(
                 user.getId(),

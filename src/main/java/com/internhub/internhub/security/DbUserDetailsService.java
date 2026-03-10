@@ -1,5 +1,6 @@
 package com.internhub.internhub.security;
 
+import com.internhub.internhub.common.exception.NotFoundException;
 import com.internhub.internhub.domain.User;
 import com.internhub.internhub.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -37,7 +38,7 @@ public class DbUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         // Look up the user by email in the database using the UserRepository
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+                .orElseThrow(() -> new NotFoundException("USER_NOT_FOUND", "User not found with email: " + email));
 
         return org.springframework.security.core.userdetails.User
                 .withUsername(user.getEmail())

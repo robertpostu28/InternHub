@@ -1,6 +1,8 @@
 package com.internhub.internhub.service;
 
 import com.internhub.internhub.api.dto.*;
+import com.internhub.internhub.common.exception.ForbiddenException;
+import com.internhub.internhub.common.exception.NotFoundException;
 import com.internhub.internhub.domain.Job;
 import com.internhub.internhub.domain.enums.JobStatus;
 import com.internhub.internhub.repository.ApplicationRepository;
@@ -48,11 +50,11 @@ public class ReportService {
     // Ex: for job "Software Engineer Intern", we might have 10 APPLIED, 5 REVIEWED, 2 INTERVIEW_SCHEDULED, etc.
     public JobStatusBreakdownDto jobStatusBreakdown(String recruiterEmail, Long jobId) {
         Job job = jobRepository.findById(jobId)
-                .orElseThrow(() -> new RuntimeException("Job not found: " + jobId));
+                .orElseThrow(() -> new NotFoundException("JOB_NOT_FOUND", "Job not found with id: " + jobId));
 
         // recruiter can only view breakdown for their own job
         if (!job.getRecruiter().getEmail().equals(recruiterEmail)) {
-            throw new RuntimeException("Unauthorized access to job data");
+            throw new ForbiddenException("ACCESS_DENIED", "You do not have permission to view this job's application breakdown");
         }
 
         List<StatusCountDto> counts = applicationRepository.countByStatusForJob(jobId).stream()

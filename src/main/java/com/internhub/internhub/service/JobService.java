@@ -2,6 +2,8 @@ package com.internhub.internhub.service;
 
 import com.internhub.internhub.api.dto.JobCreateRequest;
 import com.internhub.internhub.api.dto.JobResponse;
+import com.internhub.internhub.common.exception.ForbiddenException;
+import com.internhub.internhub.common.exception.NotFoundException;
 import com.internhub.internhub.domain.Job;
 import com.internhub.internhub.domain.User;
 import com.internhub.internhub.domain.enums.JobStatus;
@@ -28,7 +30,7 @@ public class JobService {
 
     public JobResponse createJob(String recruiterEmail, JobCreateRequest req) {
         User recruiter = userRepository.findByEmail(recruiterEmail)
-                .orElseThrow(() -> new RuntimeException("Recruiter not found: " + recruiterEmail));
+                .orElseThrow(() -> new NotFoundException("RECRUITER_NOT_FOUND", "Recruiter not found with email: " + recruiterEmail));
 
         Job job = new Job();
         job.setRecruiter(recruiter);
@@ -64,7 +66,7 @@ public class JobService {
 
     public JobDetailsResponse getJobById(Long jobId) {
         Job job = jobRepository.findById(jobId)
-                .orElseThrow(() -> new RuntimeException("Job not found with id: " + jobId));
+                .orElseThrow(() -> new NotFoundException("JOB_NOT_FOUND", "Job not found with id: " + jobId));
 
         return new JobDetailsResponse(
                 job.getId(),
@@ -93,11 +95,11 @@ public class JobService {
 
     public JobResponse closeJob(Long jobId, String recruiterEmail) {
         Job job = jobRepository.findById(jobId)
-                .orElseThrow(() -> new RuntimeException("Job not found with id: " + jobId));
+                .orElseThrow(() -> new NotFoundException("JOB_NOT_FOUND", "Job not found with id: " + jobId));
 
         // Ensure that the authenticated recruiter is the owner of the job before allowing it to be closed
         if (!job.getRecruiter().getEmail().equals(recruiterEmail)) {
-            throw new RuntimeException("Unauthorized: You can only close your own jobs.");
+            throw new ForbiddenException("ACCESS_DENIED", "You are not allowed to close this job");
         }
 
         job.setStatus(JobStatus.CLOSED);

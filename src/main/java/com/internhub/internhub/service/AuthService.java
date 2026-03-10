@@ -2,6 +2,7 @@ package com.internhub.internhub.service;
 
 import com.internhub.internhub.api.dto.RegisterRequest;
 import com.internhub.internhub.api.dto.UserResponse;
+import com.internhub.internhub.common.exception.ConflictException;
 import com.internhub.internhub.domain.User;
 import com.internhub.internhub.domain.enums.Role;
 import com.internhub.internhub.repository.UserRepository;
@@ -25,14 +26,14 @@ public class AuthService {
 
         // fast check (DB unique constraint is still the final safety net)
         if (userRepository.existsByEmail(email)) {
-            throw new IllegalArgumentException("Email is already registered: " + email);
+            throw new ConflictException("EMAIL_ALREADY_EXISTS", "Email already exists");
         }
 
         Role role;
         try {
             role = Role.valueOf(registerRequest.role().trim().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid role: " + registerRequest.role() + ". Must be 'CANDIDATE' or 'RECRUITER'.");
+        } catch (Exception e) {
+            throw new ConflictException("INVALID_ROLE", "Role must be either CANDIDATE or RECRUITER");
         }
 
         User user = new User();

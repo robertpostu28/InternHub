@@ -1,5 +1,7 @@
 package com.internhub.internhub.service;
 
+import com.internhub.internhub.common.exception.ForbiddenException;
+import com.internhub.internhub.common.exception.NotFoundException;
 import com.internhub.internhub.domain.Application;
 import com.internhub.internhub.domain.StoredFile;
 import com.internhub.internhub.repository.ApplicationRepository;
@@ -23,16 +25,16 @@ public class ApplicationCvService {
 
     public CvDownload downloadCvForApplication(Long applicationId, String recruiterEmail) {
         Application app = applicationRepository.findById(applicationId)
-                .orElseThrow(() -> new RuntimeException("Application not found: " + applicationId));
+                .orElseThrow(() -> new NotFoundException("APPLICATION_NOT_FOUND", "Application not found with id: " + applicationId));
 
         // Security check: ensure the recruiter is authorized to view this application
         if (!app.getJob().getRecruiter().getEmail().equals(recruiterEmail)) {
-            throw new RuntimeException("Unauthorized: Recruiter does not have access to this application");
+            throw new ForbiddenException("ACCESS_DENIED", "You are not authorized to access the CV for this application");
         }
 
         StoredFile cvFile = app.getCandidate().getCvFile();
         if (cvFile == null) {
-            throw new RuntimeException("Candidate has not uploaded a CV for this application");
+            throw new NotFoundException("CV_NOT_FOUND", "The candidate has not uploaded a CV");
         }
 
         DownloadedBlob blob = cvStorageService.downloadCv(cvFile.getStorageKey());

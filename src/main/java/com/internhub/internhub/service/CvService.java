@@ -1,5 +1,8 @@
 package com.internhub.internhub.service;
 
+import com.internhub.internhub.common.exception.BadRequestException;
+import com.internhub.internhub.common.exception.ForbiddenException;
+import com.internhub.internhub.common.exception.NotFoundException;
 import com.internhub.internhub.domain.StoredFile;
 import com.internhub.internhub.domain.User;
 import com.internhub.internhub.domain.enums.FileType;
@@ -39,10 +42,10 @@ public class CvService {
     @Transactional
     public CvMetadataDto uploadMyCv(String userEmail, MultipartFile file) {
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found: " + userEmail));
+                .orElseThrow(() -> new NotFoundException("USER_NOT_FOUND", "User not found with email: " + userEmail));
 
         if (user.getRole() != Role.CANDIDATE) {
-            throw new RuntimeException("Only candidates can upload CVs");
+            throw new ForbiddenException("ACCESS_DENIED", "Only candidates can upload CVs");
         }
 
         validate(file);
@@ -84,11 +87,11 @@ public class CvService {
 
     public CvMetadataDto getMyCvMetadata(String userEmail) {
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new NotFoundException("USER_NOT_FOUND", "User not found with email: " + userEmail));
 
         StoredFile cv = user.getCvFile();
         if (cv == null) {
-            throw new RuntimeException("No CV uploaded");
+            throw new BadRequestException("CV_NOT_FOUND", "No CV uploaded");
         }
 
         return new CvMetadataDto(
@@ -102,11 +105,11 @@ public class CvService {
 
     public DownloadedBlob downloadMyCv(String userEmail) {
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new NotFoundException("USER_NOT_FOUND", "User not found with email: " + userEmail));
 
         StoredFile cv = user.getCvFile();
         if (cv == null) {
-            throw new RuntimeException("No CV uploaded");
+            throw new BadRequestException("CV_NOT_FOUND", "No CV uploaded");
         }
 
         return cvStorageService.downloadCv(cv.getStorageKey());
@@ -114,14 +117,14 @@ public class CvService {
 
     private void validate(MultipartFile file) {
         if (file == null || file.isEmpty()) {
-            throw new RuntimeException("CV file is required");
+            throw new BadRequestException("FILE_REQUIRED", "CV file is required");
         }
         if (file.getSize() > MAX_CV_BYTES) {
-            throw new RuntimeException("CV file size exceeds maximum of 5 MB");
+            throw new BadRequestException("FILE_TOO_LARGE", "CV file size must be <= 5 MB");
         }
         String contentType = file.getContentType();
         if (contentType == null || !ALLOWED_TYPES.contains(contentType)) {
-            throw new RuntimeException("CV file type must be PDF/DOC/DOCX");
+            throw new BadRequestException("INVALID_FILE_TYPE", "CV file type must be PDF or Word document");
         }
     }
 }

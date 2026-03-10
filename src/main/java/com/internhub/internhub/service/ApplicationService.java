@@ -1,6 +1,10 @@
 package com.internhub.internhub.service;
 
 import com.internhub.internhub.api.dto.ApplicationResponse;
+import com.internhub.internhub.common.exception.BadRequestException;
+import com.internhub.internhub.common.exception.ConflictException;
+import com.internhub.internhub.common.exception.ForbiddenException;
+import com.internhub.internhub.common.exception.NotFoundException;
 import com.internhub.internhub.domain.Application;
 import com.internhub.internhub.domain.Job;
 import com.internhub.internhub.domain.User;
@@ -33,24 +37,24 @@ public class ApplicationService {
 
     public ApplicationResponse apply(String candidateEmail, Long jobId) {
         User candidate = userRepository.findByEmail(candidateEmail)
-                .orElseThrow(() -> new RuntimeException("Candidate not found: " + candidateEmail));
+                .orElseThrow(() -> new NotFoundException("CANDIDATE_NOT_FOUND", "Candidate not found with email: " + candidateEmail));
 
         // Rule: candidate must have cv uploaded to apply
         if (candidate.getCvFile() == null) {
-            throw new RuntimeException("Candidate must upload a CV before applying");
+            throw new BadRequestException("CV_REQUIRED", "You must upload a CV before applying to jobs");
         }
 
         Job job = jobRepository.findById(jobId)
-                .orElseThrow(() -> new RuntimeException("Job not found: " + jobId));
+                .orElseThrow(() -> new NotFoundException("JOB_NOT_FOUND", "Job not found with id: " + jobId));
 
         // Rule: job must be OPEN to accept applications
         if (job.getStatus() != JobStatus.OPEN) {
-            throw new RuntimeException("Cannot apply to a job that is not OPEN");
+            throw new ConflictException("JOB_STATUS_NOT_OPEN", "Job status is not OPEN");
         }
 
         // Rule: candidate cannot apply to the same job more than once
         if (applicationRepository.existsByJobIdAndCandidateId(jobId, candidate.getId())) {
-            throw new RuntimeException("Candidate has already applied to this job");
+            throw new ConflictException("ALREADY_APPLIED", "You have already applied to this job");
         }
 
         Application app = new Application();
@@ -71,11 +75,11 @@ public class ApplicationService {
 
     public Page<JobApplicationResponse> listApplicationsForJob(Long jobId, String recruiterEmail, int page, int size) {
         Job job =  jobRepository.findById(jobId)
-                .orElseThrow(() -> new RuntimeException("Job not found: " + jobId));
+                .orElseThrow(() -> new NotFoundException("JOB_NOT_FOUND", "Job not found with id: " + jobId));
 
         // Rule: recruiter can only see applications for their own job
         if (!job.getRecruiter().getEmail().equals(recruiterEmail)) {
-            throw new RuntimeException("You are not allowed to view applications for this job");
+            throw new ForbiddenException("ACCESS_DENIED", "You are not allowed to view applications for this job");
         }
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "appliedAt"));
@@ -93,18 +97,18 @@ public class ApplicationService {
 
     public ApplicationResponse updateStatus(Long applicationId, String recruiterEmail, String newStatus) {
         Application application = applicationRepository.findById(applicationId)
-                .orElseThrow(() -> new RuntimeException("Application not found: " + applicationId));
+                .orElseThrow(() -> new NotFoundException("APPLICATION_NOT_FOUND", "Application not found with id: " + applicationId));
 
         // Rule: recruiter can only update applications for their own job
         if (!application.getJob().getRecruiter().getEmail().equals(recruiterEmail)) {
-            throw new RuntimeException("You are not allowed to update applications for this job");
+            throw new ForbiddenException("ACCESS_DENIED", "You are not allowed to update applications for this job");
         }
 
         ApplicationStatus status;
         try {
             status = ApplicationStatus.valueOf(newStatus.trim().toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Invalid application status: " + newStatus);
+            throw new BadRequestException("INVALID_STATUS", "Invalid application status: " + newStatus);
         }
 
         application.setStatus(status);

@@ -4,6 +4,7 @@ import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.models.BlobHttpHeaders;
 import com.azure.storage.blob.models.BlobProperties;
+import com.internhub.internhub.common.exception.BadRequestException;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -49,7 +50,7 @@ public class AzureCvStorageService implements CvStorageService {
                     contentType
             );
         } catch (Exception e) {
-            throw new RuntimeException("Failed to upload CV", e);
+            throw new BadRequestException("CV_UPLOAD_FAILED", "Failed to upload CV to blob storage: " + e.getMessage());
         }
     }
 
@@ -73,7 +74,7 @@ public class AzureCvStorageService implements CvStorageService {
                     contentType
             );
         } catch (Exception e) {
-            throw new RuntimeException("Failed to download CV from blob storage", e);
+            throw new BadRequestException("CV_DOWNLOAD_FAILED", "Failed to download CV from blob storage: " + e.getMessage());
         }
     }
 
@@ -85,7 +86,7 @@ public class AzureCvStorageService implements CvStorageService {
             BlobClient blob = cvContainer.getBlobClient(blobName);
             blob.deleteIfExists();
         } catch (Exception e) {
-            throw new RuntimeException("Failed to delete CV from blob storage", e);
+            throw new BadRequestException("CV_DELETE_FAILED", "Failed to delete CV from blob storage: " + e.getMessage());
         }
     }
 
